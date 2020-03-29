@@ -1,14 +1,17 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.14 as builder
 
-RUN apk update && apk --no-cache add git build-base
-RUN go get -u -v github.com/go-shiori/shiori
+# RUN apt-get update && apt-get install git build-base
+RUN git clone https://github.com/go-shiori/shiori
+WORKDIR shiori
+RUN go mod download
+RUN go build
 
 # ========== END OF BUILDER ========== #
 
 FROM alpine:latest
 
 RUN apk update && apk --no-cache add dumb-init ca-certificates
-COPY --from=builder /go/bin/shiori /usr/local/bin/shiori
+COPY --from=builder /go/shiori/shiori /usr/local/bin/shiori
 
 ENV SHIORI_DIR /srv/shiori/
 EXPOSE 8080
